@@ -1,98 +1,98 @@
-#include "raylib.h"
+
 #include <iostream>
+#include <raylib.h>
+#include <deque>
+#include <raymath.h>
+#include "Game.h"
+#include "Snake.h"
+#include "Food.h"
 
-#pragma region imgui
-#include "imgui.h"
-#include "rlImGui.h"
-#include "imguiThemes.h"
-#pragma endregion
+static bool allowMove = false;
+Color blue = { 0, 121, 241, 255 };
+Color darkBlue = { 0, 82, 172, 255 };
 
+int cellSize = 30;
+int cellCount = 25;
+int offset = 75;
 
+double lastUpdateTime = 0;
 
-int main(void)
+bool ElementInDeque(Vector2 element, std::deque<Vector2> deque)
 {
+    for (unsigned int i = 0; i < deque.size(); i++)
+    {
+        if (Vector2Equals(deque[i], element))
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
-	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-	InitWindow(800, 450, "raylib [core] example - basic window");
-
-#pragma region imgui
-	rlImGuiSetup(true);
-
-	//you can use whatever imgui theme you like!
-	//ImGui::StyleColorsDark();
-	//imguiThemes::yellow();
-	//imguiThemes::gray();
-	imguiThemes::green();
-	//imguiThemes::red();
-	//imguiThemes::embraceTheDarkness();
-
-
-	ImGuiIO &io = ImGui::GetIO(); (void)io;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-	io.FontGlobalScale = 2;
-
-	ImGuiStyle &style = ImGui::GetStyle();
-	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-	{
-		//style.WindowRounding = 0.0f;
-		style.Colors[ImGuiCol_WindowBg].w = 0.5f;
-		//style.Colors[ImGuiCol_DockingEmptyBg].w = 0.f;
-	}
-
-#pragma endregion
+bool EventTriggered(double interval)
+{
+    double currentTime = GetTime();
+    if (currentTime - lastUpdateTime >= interval)
+    {
+        lastUpdateTime = currentTime;
+        return true;
+    }
+    return false;
+}
 
 
+int main()
+{
+    std::cout << "Starting the game..." << std::endl;
+    InitWindow(2 * offset + cellSize * cellCount, 2 * offset + cellSize * cellCount, "Snake");
+    SetTargetFPS(60);
 
-	while (!WindowShouldClose())
-	{
-		BeginDrawing();
-		ClearBackground(RAYWHITE);
+    Game game = Game();
 
+    while (WindowShouldClose() == false)
+    {
+        BeginDrawing();
 
-	#pragma region imgui
-		rlImGuiBegin();
+        if (EventTriggered(0.2))
+        {
+            allowMove = true;
+            game.Update();
+        }
 
-		ImGui::PushStyleColor(ImGuiCol_WindowBg, {});
-		ImGui::PushStyleColor(ImGuiCol_DockingEmptyBg, {});
-		ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
-		ImGui::PopStyleColor(2);
-	#pragma endregion
+        if (IsKeyPressed(KEY_UP) && game.snake.direction.y != 1 && allowMove)
+        {
+            game.snake.direction = { 0, -1 };
+            game.running = true;
+            allowMove = false;
+        }
+        if (IsKeyPressed(KEY_DOWN) && game.snake.direction.y != -1 && allowMove)
+        {
+            game.snake.direction = { 0, 1 };
+            game.running = true;
+            allowMove = false;
+        }
+        if (IsKeyPressed(KEY_LEFT) && game.snake.direction.x != 1 && allowMove)
+        {
+            game.snake.direction = { -1, 0 };
+            game.running = true;
+            allowMove = false;
+        }
+        if (IsKeyPressed(KEY_RIGHT) && game.snake.direction.x != -1 && allowMove)
+        {
+            game.snake.direction = { 1, 0 };
+            game.running = true;
+            allowMove = false;
+        }
 
+        // Drawing
+        ClearBackground(blue);
+        DrawRectangleLinesEx(Rectangle{ (float)offset - 5, (float)offset - 5, (float)cellSize * cellCount + 10, (float)cellSize * cellCount + 10 }, 5, darkBlue);
+        DrawText("Sarpele", offset - 5, 20, 40, darkBlue);
+        DrawText(TextFormat("%i", game.score), offset - 5, offset + cellSize * cellCount + 10, 40, darkBlue);
+        game.Draw();
 
-		ImGui::Begin("Test");
-
-		ImGui::Text("Hello");
-		ImGui::Button("Button");
-		ImGui::Button("Button2");
-
-		ImGui::End();
-
-
-		DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
-
-
-	#pragma region imgui
-		rlImGuiEnd();
-
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-		}
-	#pragma endregion
-
-		EndDrawing();
-	}
-
-
-#pragma region imgui
-	rlImGuiShutdown();
-#pragma endregion
-
-
-
-	CloseWindow();
-
-	return 0;
+        EndDrawing();
+    }
+    CloseWindow();
+    return 0;
 }

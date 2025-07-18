@@ -5,7 +5,7 @@ Also it has raylib already installed, so you don't need to install it.
 # How to compile
 To compile the game again after changing the code, you just need to save the cmake file and build it again.
 
-#Features that are not implemented yet
+# Features that are not implemented yet
 - [ ] A menu
 - [ ] A pause menu
 - [ ] A game over screen
